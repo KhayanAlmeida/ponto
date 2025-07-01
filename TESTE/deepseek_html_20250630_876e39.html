@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Ponto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+      body {
+        font-family: 'Inter', 'Noto Sans', sans-serif;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .shake {
+        animation: shake 0.5s;
+      }
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-5px); }
+        40%, 80% { transform: translateX(5px); }
+      }
+      .fade-in {
+        animation: fadeIn 0.3s;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.4);
+      }
+      .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+      }
+      .logo {
+        height: 80px;
+        width: auto;
+        max-width: 250px;
+        object-fit: contain;
+      }
+      .time-button {
+        flex: 1;
+        margin: 0 2px;
+      }
+      .fixed {
+        position: fixed;
+      }
+      .inset-0 {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+      .bg-opacity-50 {
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .z-50 {
+        z-index: 50;
+      }
+      .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background-color: #f00;
+        opacity: 0;
+        z-index: 9999;
+        animation: confetti-fall 3s ease-in-out forwards;
+      }
+      @keyframes confetti-fall {
+        0% {
+          transform: translateY(-100vh) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+      .success-card {
+        animation: slideIn 0.5s forwards, pulse 2s 0.5s infinite;
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      @keyframes slideIn {
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    </style>
+  </head>
+  <body class="bg-white">
+    <div class="min-h-screen flex flex-col justify-between">
+      <!-- Conteúdo Principal -->
+      <div id="mainContent">
+        <!-- Cabeçalho com Logos -->
+        <div class="p-4 pb-2 flex justify-between items-center">
+          <img src="logo_esquerda.png" alt="Logo Empresa" class="logo" onerror="this.style.display='none'">
+          <h2 class="text-[#111418] text-lg font-bold text-center">Registro de Ponto</h2>
+          <img src="logo_direita.png" alt="Logo Parceiro" class="logo" onerror="this.style.display='none'">
+        </div>
+        
+        <!-- Formulário de Registro -->
+        <div class="tab-content active" id="registerTab">
+          <div class="px-4 py-3">
+            <input
+              id="fiscalId"
+              type="text"
+              placeholder="ID do Fiscal (2 dígitos)"
+              class="w-full rounded-lg bg-[#f0f2f5] p-4 h-14 placeholder-[#60758a] focus:outline-none"
+              list="fiscalList"
+              maxlength="2"
+              pattern="\d{2}"
+              title="Digite um ID com 2 dígitos numéricos"
+            />
+            <datalist id="fiscalList"></datalist>
+            <p id="fiscalIdError" class="text-red-500 text-xs mt-1 hidden">ID deve conter 2 dígitos numéricos</p>
+          </div>
+          
+          <!-- Botões de Registro -->
+          <div class="px-4 py-3 flex">
+            <button
+              id="registerEntryButton"
+              class="time-button bg-green-500 text-white rounded-lg h-10 font-bold hover:bg-green-600 transition-colors flex items-center justify-center"
+            >
+              <span id="registerEntryButtonText">Entrada</span>
+              <svg id="registerEntryButtonSpinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+            <button
+              id="registerExitButton"
+              class="time-button bg-red-500 text-white rounded-lg h-10 font-bold hover:bg-red-600 transition-colors flex items-center justify-center"
+            >
+              <span id="registerExitButtonText">Saída</span>
+              <svg id="registerExitButtonSpinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Data e Hora -->
+          <div class="text-center">
+            <p id="currentTime" class="text-[#60758a] text-sm py-1">Hora de Brasília: <span id="timeValue">14:35</span></p>
+            <p id="currentDate" class="text-[#60758a] text-sm py-1">Data: <span id="dateValue">26/07/2024</span></p>
+          </div>
+          
+          <!-- Feedback de registro -->
+          <div id="registerFeedback" class="px-4 py-2 hidden fade-in">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+              <span class="block sm:inline" id="feedbackMessage"></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Aba de Cadastro de Fiscais -->
+        <div class="tab-content px-4" id="fiscalTab">
+          <h3 class="text-[#111418] font-bold py-3">Cadastro</h3>
+          
+          <div class="mb-4">
+            <input
+              id="newFiscalId"
+              type="text"
+              placeholder="ID do Fiscal (2 dígitos)"
+              class="w-full rounded-lg bg-[#f0f2f5] p-4 h-14 placeholder-[#60758a] focus:outline-none mb-2"
+              maxlength="2"
+              pattern="\d{2}"
+              title="Digite um ID com 2 dígitos numéricos"
+            />
+            <p id="newFiscalIdError" class="text-red-500 text-xs mb-2 hidden">ID deve conter 2 dígitos numéricos</p>
+            
+            <input
+              id="newFiscalName"
+              type="text"
+              placeholder="Nome Completo do Fiscal"
+              class="w-full rounded-lg bg-[#f0f2f5] p-4 h-14 placeholder-[#60758a] focus:outline-none mb-2"
+              pattern="[A-Za-zÀ-ÿ\s]{5,}"
+              title="Digite o nome completo (mínimo 5 caracteres)"
+            />
+            <p id="newFiscalNameError" class="text-red-500 text-xs mb-2 hidden">Nome deve conter pelo menos 5 caracteres</p>
+            
+            <input
+              id="newFiscalPassword"
+              type="password"
+              placeholder="Senha do Fiscal (4 dígitos)"
+              class="w-full rounded-lg bg-[#f0f2f5] p-4 h-14 placeholder-[#60758a] focus:outline-none mb-2"
+              maxlength="4"
+              pattern="\d{4}"
+              title="Digite uma senha com 4 dígitos numéricos"
+            />
+            <p id="newFiscalPasswordError" class="text-red-500 text-xs mb-2 hidden">Senha deve conter 4 dígitos numéricos</p>
+            
+            <div class="flex mt-2">
+              <input
+                id="entryTime"
+                type="time"
+                class="w-1/2 rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none mr-1"
+                value="08:30"
+              />
+              <input
+                id="exitTime"
+                type="time"
+                class="w-1/2 rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none ml-1"
+                value="17:30"
+              />
+            </div>
+          </div>
+          
+          <button
+            id="addFiscalButton"
+            class="w-full bg-[#0c7ff2] text-white rounded-lg h-10 font-bold hover:bg-[#0a6bc7] transition-colors mb-4 flex items-center justify-center"
+          >
+            <span id="addFiscalButtonText">Adicionar Fiscal</span>
+            <svg id="addFiscalButtonSpinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </button>
+          
+          <!-- Busca de fiscais -->
+          <div class="mb-3">
+            <input
+              id="searchFiscal"
+              type="text"
+              placeholder="Buscar fiscal por ID ou nome"
+              class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none"
+            />
+          </div>
+          
+          <div class="border-t border-[#f0f2f5] pt-3">
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="text-[#111418] font-bold">Fiscais Cadastrados</h4>
+              <span id="fiscalCount" class="text-sm text-[#60758a]">0 fiscais</span>
+            </div>
+            <div id="fiscalListContainer" class="max-h-60 overflow-y-auto">
+              <!-- Lista de fiscais será inserida aqui -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Aba de Histórico -->
+        <div class="tab-content px-4" id="historyTab">
+          <h3 class="text-[#111418] font-bold py-3">Histórico de Pontos</h3>
+          
+          <!-- Filtros do histórico -->
+          <div class="mb-3 grid grid-cols-2 gap-2">
+            <input
+              id="historySearch"
+              type="text"
+              placeholder="Buscar por ID ou nome"
+              class="rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none col-span-2"
+            />
+            <input
+              id="historyDateFrom"
+              type="date"
+              class="rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none"
+            >
+            <input
+              id="historyDateTo"
+              type="date"
+              class="rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none"
+            >
+            <button
+              id="exportButton"
+              class="col-span-2 bg-[#0c7ff2] text-white rounded-lg h-10 font-bold hover:bg-[#0a6bc7] transition-colors flex items-center justify-center"
+            >
+              <span id="exportButtonText">Exportar para CSV</span>
+              <svg id="exportButtonSpinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+            <button
+              id="backupButton"
+              class="col-span-2 bg-green-500 text-white rounded-lg h-10 font-bold hover:bg-green-600 transition-colors flex items-center justify-center"
+            >
+              <span id="backupButtonText">Backup de Dados</span>
+              <svg id="backupButtonSpinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+            <button
+              id="restoreButton"
+              class="col-span-2 bg-yellow-500 text-white rounded-lg h-10 font-bold hover:bg-yellow-600 transition-colors flex items-center justify-center"
+            >
+              <span id="restoreButtonText">Restaurar Backup</span>
+              <svg id="restoreButtonSpinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="flex justify-between items-center mb-2">
+            <span id="historyCount" class="text-sm text-[#60758a]">0 registros</span>
+            <button id="clearHistory" class="text-red-500 text-sm">Limpar Histórico</button>
+          </div>
+          
+          <div id="historyList" class="max-h-60 overflow-y-auto">
+            <!-- Histórico será inserido aqui -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Navegação Inferior -->
+      <nav class="border-t border-[#f0f2f5] bg-white">
+        <div class="flex px-4 pt-2 pb-3">
+          <a href="#" class="flex-1 flex flex-col items-center text-[#111418]" id="homeLink">
+            <div class="h-8 flex items-center justify-center text-[#111418]" id="homeIcon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"></path>
+              </svg>
+            </div>
+            <span class="text-xs">Registro</span>
+          </a>
+          <a href="#" class="flex-1 flex flex-col items-center text-[#60758a]" id="fiscalLink">
+            <div class="h-8 flex items-center justify-center text-[#60758a]" id="fiscalIcon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+              </svg>
+            </div>
+            <span class="text-xs">Cadastro</span>
+          </a>
+          <a href="#" class="flex-1 flex flex-col items-center text-[#60758a]" id="historyLink">
+            <div class="h-8 flex items-center justify-center text-[#60758a]" id="historyIcon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path>
+              </svg>
+            </div>
+            <span class="text-xs">Histórico</span>
+          </a>
+        </div>
+        <div class="h-5 bg-white"></div>
+      </nav>
+    </div>
+
+    <!-- Modal de Confirmação por Senha -->
+    <div id="passwordModal" class="modal">
+      <div class="modal-content">
+        <h3 class="font-bold text-lg mb-4">Confirmação por Senha</h3>
+        <p class="mb-4">Digite a senha para confirmar esta ação:</p>
+        <input 
+          type="password" 
+          id="passwordInput" 
+          class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none mb-4"
+          placeholder="Senha"
+        >
+        <p id="passwordError" class="text-red-500 text-xs mb-4 hidden">Senha incorreta</p>
+        <div class="flex justify-end gap-2">
+          <button id="cancelPassword" class="px-4 py-2 rounded-lg border border-gray-300">Cancelar</button>
+          <button id="confirmPassword" class="px-4 py-2 rounded-lg bg-[#0c7ff2] text-white">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Edição de Registro -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <h3 class="font-bold text-lg mb-4">Editar Registro</h3>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">ID Fiscal</label>
+          <input 
+            type="text" 
+            id="editFiscalId" 
+            class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none"
+            maxlength="2"
+            pattern="\d{2}"
+          >
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Nome Fiscal</label>
+          <input 
+            type="text" 
+            id="editFiscalName" 
+            class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none"
+          >
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Tipo</label>
+          <select id="editType" class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none">
+            <option value="entry">Entrada</option>
+            <option value="exit">Saída</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Data</label>
+          <input 
+            type="date" 
+            id="editDate" 
+            class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none"
+          >
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Hora</label>
+          <input 
+            type="time" 
+            id="editTime" 
+            class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none"
+          >
+        </div>
+        <div class="flex justify-end gap-2">
+          <button id="cancelEdit" class="px-4 py-2 rounded-lg border border-gray-300">Cancelar</button>
+          <button id="saveEdit" class="px-4 py-2 rounded-lg bg-[#0c7ff2] text-white">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Backup/Restauração -->
+    <div id="backupModal" class="modal">
+      <div class="modal-content">
+        <h3 class="font-bold text-lg mb-4" id="backupModalTitle">Backup de Dados</h3>
+        <div id="backupContent">
+          <p class="mb-4">Clique no botão abaixo para fazer download do backup dos dados:</p>
+          <button
+            id="downloadBackup"
+            class="w-full bg-[#0c7ff2] text-white rounded-lg h-10 font-bold hover:bg-[#0a6bc7] transition-colors mb-4"
+          >
+            Download Backup
+          </button>
+        </div>
+        <div id="restoreContent" class="hidden">
+          <p class="mb-4">Selecione o arquivo de backup para restaurar:</p>
+          <input
+            type="file"
+            id="backupFile"
+            class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none mb-4"
+            accept=".json"
+          >
+          <p id="restoreError" class="text-red-500 text-xs mb-4 hidden">Arquivo inválido ou corrompido</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button id="closeBackupModal" class="px-4 py-2 rounded-lg border border-gray-300">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Acesso às Abas -->
+    <div id="tabAccessModal" class="modal">
+      <div class="modal-content">
+        <h3 class="font-bold text-lg mb-4">Acesso Restrito</h3>
+        <p class="mb-4">Digite a senha para acessar esta área:</p>
+        <input 
+          type="password" 
+          id="tabPasswordInput" 
+          class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none mb-4"
+          placeholder="Senha"
+        >
+        <p id="tabPasswordError" class="text-red-500 text-xs mb-4 hidden">Senha incorreta</p>
+        <div class="flex justify-end gap-2">
+          <button id="cancelTabAccess" class="px-4 py-2 rounded-lg border border-gray-300">Cancelar</button>
+          <button id="confirmTabAccess" class="px-4 py-2 rounded-lg bg-[#0c7ff2] text-white">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Alteração de Senha do Fiscal -->
+    <div id="changePasswordModal" class="modal">
+      <div class="modal-content">
+        <h3 class="font-bold text-lg mb-4">Alterar Senha do Fiscal</h3>
+        <input type="hidden" id="changePasswordFiscalId">
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Nova Senha (4 dígitos)</label>
+          <input 
+            type="password" 
+            id="newPasswordInput" 
+            class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none mb-2"
+            maxlength="4"
+            pattern="\d{4}"
+          >
+          <p id="newPasswordError" class="text-red-500 text-xs hidden">Senha deve conter 4 dígitos numéricos</p>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Confirmar Nova Senha</label>
+          <input 
+            type="password" 
+            id="confirmNewPasswordInput" 
+            class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none mb-2"
+            maxlength="4"
+            pattern="\d{4}"
+          >
+          <p id="confirmPasswordError" class="text-red-500 text-xs hidden">As senhas não coincidem</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button id="cancelChangePassword" class="px-4 py-2 rounded-lg border border-gray-300">Cancelar</button>
+          <button id="confirmChangePassword" class="px-4 py-2 rounded-lg bg-[#0c7ff2] text-white">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notificação de Cadastro -->
+    <div id="successNotification" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 hidden">
+      <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg success-card flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span id="successMessage"></span>
+      </div>
+    </div>
+
+    <script>
+      // Banco de dados local para armazenar fiscais e registros
+      const appData = {
+        fiscals: JSON.parse(localStorage.getItem('fiscals')) || [],
+        records: JSON.parse(localStorage.getItem('records')) || [],
+        lastRegisterTime: JSON.parse(localStorage.getItem('lastRegisterTime')) || null
+      };
+
+      // Constantes
+      const PASSWORD = "4959";
+      let currentAction = null;
+      let currentRecordToEdit = null;
+      let targetTab = null; // Armazena a aba que o usuário tentou acessar
+
+      // Função para salvar dados no localStorage
+      function saveData() {
+        localStorage.setItem('fiscals', JSON.stringify(appData.fiscals));
+        localStorage.setItem('records', JSON.stringify(appData.records));
+        localStorage.setItem('lastRegisterTime', JSON.stringify(appData.lastRegisterTime));
+        updateFiscalList();
+        updateHistoryList();
+      }
+
+      // Função para mostrar notificação de sucesso
+      function showSuccessNotification(message) {
+        const notification = document.getElementById('successNotification');
+        const messageElement = document.getElementById('successMessage');
+        
+        messageElement.textContent = message;
+        notification.classList.remove('hidden');
+        
+        // Cria efeito de confete
+        createConfetti();
+        
+        // Esconde a notificação após 5 segundos
+        setTimeout(() => {
+          notification.classList.add('hidden');
+        }, 5000);
+      }
+      
+      // Função para criar efeito de confete
+      function createConfetti() {
+        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+        
+        for (let i = 0; i < 50; i++) {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.left = Math.random() * 100 + 'vw';
+          confetti.style.width = Math.random() * 10 + 5 + 'px';
+          confetti.style.height = Math.random() * 10 + 5 + 'px';
+          confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+          document.body.appendChild(confetti);
+          
+          // Remove o confete após a animação terminar
+          setTimeout(() => {
+            confetti.remove();
+          }, 3000);
+        }
+      }
+
+      // Função para atualizar data e hora
+      function updateDateTime() {
+        const now = new Date();
+        const options = { timeZone: 'America/Sao_Paulo' };
+        
+        // Formata a hora (HH:MM)
+        const time = now.toLocaleTimeString('pt-BR', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          ...options
+        });
+        
+        // Formata a data (DD/MM/YYYY)
+        const date = now.toLocaleDateString('pt-BR', options);
+        
+        document.getElementById('timeValue').textContent = time;
+        document.getElementById('dateValue').textContent = date;
+        
+        return { date, time, now };
+      }
+      
+      // Atualiza a cada minuto
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+      
+      // Validação de ID do fiscal (2 dígitos)
+      function validateFiscalId(id) {
+        return /^\d{2}$/.test(id);
+      }
+      
+      // Validação de nome do fiscal (mínimo 5 caracteres)
+      function validateFiscalName(name) {
+        return name.length >= 5 && /^[A-Za-zÀ-ÿ\s]+$/.test(name);
+      }
+      
+      // Validação de senha do fiscal (4 dígitos)
+      function validateFiscalPassword(password) {
+        return /^\d{4}$/.test(password);
+      }
+      
+      // Mostra mensagem de feedback
+      function showFeedback(message, isError = false) {
+        const feedback = document.getElementById('registerFeedback');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        
+        feedback.classList.remove('hidden', 'bg-red-100', 'border-red-400', 'text-red-700', 'bg-green-100', 'border-green-400', 'text-green-700');
+        feedback.classList.add(isError ? 'bg-red-100' : 'bg-green-100', 
+                              isError ? 'border-red-400' : 'border-green-400', 
+                              isError ? 'text-red-700' : 'text-green-700');
+        
+        feedbackMessage.textContent = message;
+        feedback.classList.remove('hidden');
+        
+        setTimeout(() => {
+          feedback.classList.add('hidden');
+        }, 5000);
+      }
+      
+      // Mostra modal de senha
+      function showPasswordModal(actionCallback) {
+        currentAction = actionCallback;
+        const modal = document.getElementById('passwordModal');
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordError').classList.add('hidden');
+        modal.style.display = 'block';
+      }
+      
+      // Fecha modal de senha
+      function closePasswordModal() {
+        const modal = document.getElementById('passwordModal');
+        modal.style.display = 'none';
+      }
+      
+      // Mostra modal de acesso às abas
+      function showTabAccessModal(tab) {
+        targetTab = tab;
+        const modal = document.getElementById('tabAccessModal');
+        document.getElementById('tabPasswordInput').value = '';
+        document.getElementById('tabPasswordError').classList.add('hidden');
+        modal.style.display = 'block';
+      }
+      
+      // Fecha modal de acesso às abas
+      function closeTabAccessModal() {
+        const modal = document.getElementById('tabAccessModal');
+        modal.style.display = 'none';
+      }
+      
+      // Mostra modal de edição
+      function showEditModal(record) {
+        currentRecordToEdit = record;
+        const modal = document.getElementById('editModal');
+        
+        // Preenche os campos com os dados do registro
+        document.getElementById('editFiscalId').value = record.fiscalId;
+        document.getElementById('editFiscalName').value = record.fiscalName;
+        document.getElementById('editType').value = record.type;
+        
+        // Converte data DD/MM/YYYY para YYYY-MM-DD
+        const [day, month, year] = record.date.split('/');
+        document.getElementById('editDate').value = `${year}-${month}-${day}`;
+        
+        document.getElementById('editTime').value = record.time;
+        
+        modal.style.display = 'block';
+      }
+      
+      // Fecha modal de edição
+      function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        modal.style.display = 'none';
+      }
+      
+      // Mostra modal de backup/restauração
+      function showBackupModal(isBackup = true) {
+        const modal = document.getElementById('backupModal');
+        const title = document.getElementById('backupModalTitle');
+        const backupContent = document.getElementById('backupContent');
+        const restoreContent = document.getElementById('restoreContent');
+        
+        if (isBackup) {
+          title.textContent = 'Backup de Dados';
+          backupContent.classList.remove('hidden');
+          restoreContent.classList.add('hidden');
+        } else {
+          title.textContent = 'Restaurar Backup';
+          backupContent.classList.add('hidden');
+          restoreContent.classList.remove('hidden');
+          document.getElementById('restoreError').classList.add('hidden');
+        }
+        
+        modal.style.display = 'block';
+      }
+      
+      // Fecha modal de backup/restauração
+      function closeBackupModal() {
+        const modal = document.getElementById('backupModal');
+        modal.style.display = 'none';
+      }
+      
+      // Mostra modal para alterar senha do fiscal
+      function showChangePasswordModal(fiscalId) {
+        const modal = document.getElementById('changePasswordModal');
+        document.getElementById('changePasswordFiscalId').value = fiscalId;
+        document.getElementById('newPasswordInput').value = '';
+        document.getElementById('confirmNewPasswordInput').value = '';
+        document.getElementById('newPasswordError').classList.add('hidden');
+        document.getElementById('confirmPasswordError').classList.add('hidden');
+        modal.style.display = 'block';
+      }
+      
+      // Fecha modal de alteração de senha
+      function closeChangePasswordModal() {
+        const modal = document.getElementById('changePasswordModal');
+        modal.style.display = 'none';
+      }
+      
+      // Registra ponto (entrada ou saída)
+      async function registerPoint(type) {
+        const fiscalId = document.getElementById('fiscalId').value.trim();
+        const errorElement = document.getElementById('fiscalIdError');
+        
+        // Validação do ID
+        if (!validateFiscalId(fiscalId)) {
+          errorElement.classList.remove('hidden');
+          document.getElementById('fiscalId').classList.add('shake');
+          setTimeout(() => {
+            document.getElementById('fiscalId').classList.remove('shake');
+          }, 500);
+          return;
+        }
+        errorElement.classList.add('hidden');
+        
+        // Verifica se o fiscal existe
+        const fiscal = appData.fiscals.find(f => f.id === fiscalId);
+        if (!fiscal) {
+          showFeedback('Fiscal não cadastrado! Por favor, cadastre o fiscal primeiro.', true);
+          return;
+        }
+        
+        // Solicita a senha do fiscal antes de registrar
+        showFiscalPasswordModal(fiscalId, async () => {
+          // Configura o botão correto
+          const buttonId = type === 'entry' ? 'registerEntryButton' : 'registerExitButton';
+          const button = document.getElementById(buttonId);
+          const buttonText = document.getElementById(`${buttonId}Text`);
+          const spinner = document.getElementById(`${buttonId}Spinner`);
+          
+          // Mostra spinner no botão
+          buttonText.textContent = type === 'entry' ? 'Registrando Entrada...' : 'Registrando Saída...';
+          spinner.classList.remove('hidden');
+          button.disabled = true;
+          
+          // Simula delay para melhor UX
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const { date, time, now } = updateDateTime();
+          const record = {
+            fiscalId,
+            fiscalName: fiscal.name,
+            type, // 'entry' ou 'exit'
+            date,
+            time,
+            timestamp: now.getTime()
+          };
+          
+          appData.records.unshift(record); // Adiciona no início do array
+          appData.lastRegisterTime = now;
+          saveData();
+          
+          // Feedback de sucesso
+          const typeText = type === 'entry' ? 'entrada' : 'saída';
+          const message = `${typeText} registrada para ${fiscal.name} (ID: ${fiscalId}) às ${time}`;
+          showFeedback(message);
+          showSuccessNotification(message);
+          
+          // Reseta o botão
+          buttonText.textContent = type === 'entry' ? 'Entrada' : 'Saída';
+          spinner.classList.add('hidden');
+          button.disabled = false;
+          
+          document.getElementById('fiscalId').value = ''; // Limpa o campo
+        });
+      }
+      
+      // Cria um modal para solicitar a senha do fiscal
+      function showFiscalPasswordModal(fiscalId, callback) {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+          <div class="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h3 class="font-bold text-lg mb-4">Senha do Fiscal</h3>
+            <p class="mb-4">Digite a senha do fiscal ID ${fiscalId}:</p>
+            <input 
+              type="password" 
+              id="fiscalPasswordInput" 
+              class="w-full rounded-lg bg-[#f0f2f5] p-3 h-12 placeholder-[#60758a] focus:outline-none mb-4"
+              placeholder="Senha (4 dígitos)"
+              maxlength="4"
+            >
+            <p id="fiscalPasswordError" class="text-red-500 text-xs mb-4 hidden">Senha incorreta</p>
+            <div class="flex justify-end gap-2">
+              <button id="cancelFiscalPassword" class="px-4 py-2 rounded-lg border border-gray-300">Cancelar</button>
+              <button id="confirmFiscalPassword" class="px-4 py-2 rounded-lg bg-[#0c7ff2] text-white">Confirmar</button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        document.getElementById('confirmFiscalPassword').addEventListener('click', function() {
+          const password = document.getElementById('fiscalPasswordInput').value;
+          const fiscal = appData.fiscals.find(f => f.id === fiscalId);
+          
+          if (fiscal && fiscal.password === password) {
+            document.body.removeChild(modal);
+            callback();
+          } else {
+            document.getElementById('fiscalPasswordError').classList.remove('hidden');
+          }
+        });
+        
+        document.getElementById('cancelFiscalPassword').addEventListener('click', function() {
+          document.body.removeChild(modal);
+        });
+      }
+      
+      // Botão de entrada
+      document.getElementById('registerEntryButton').addEventListener('click', function() {
+        registerPoint('entry');
+      });
+      
+      // Botão de saída
+      document.getElementById('registerExitButton').addEventListener('click', function() {
+        registerPoint('exit');
+      });
+      
+      // Botão de adicionar fiscal
+      document.getElementById('addFiscalButton').addEventListener('click', async function() {
+        const fiscalId = document.getElementById('newFiscalId').value.trim();
+        const fiscalName = document.getElementById('newFiscalName').value.trim();
+        const fiscalPassword = document.getElementById('newFiscalPassword').value.trim();
+        const entryTime = document.getElementById('entryTime').value;
+        const exitTime = document.getElementById('exitTime').value;
+        
+        const idError = document.getElementById('newFiscalIdError');
+        const nameError = document.getElementById('newFiscalNameError');
+        const passwordError = document.getElementById('newFiscalPasswordError');
+        
+        // Validações
+        let isValid = true;
+        
+        if (!validateFiscalId(fiscalId)) {
+          idError.classList.remove('hidden');
+          document.getElementById('newFiscalId').classList.add('shake');
+          setTimeout(() => {
+            document.getElementById('newFiscalId').classList.remove('shake');
+          }, 500);
+          isValid = false;
+        } else {
+          idError.classList.add('hidden');
+        }
+        
+        if (!validateFiscalName(fiscalName)) {
+          nameError.classList.remove('hidden');
+          document.getElementById('newFiscalName').classList.add('shake');
+          setTimeout(() => {
+            document.getElementById('newFiscalName').classList.remove('shake');
+          }, 500);
+          isValid = false;
+        } else {
+          nameError.classList.add('hidden');
+        }
+        
+        if (!validateFiscalPassword(fiscalPassword)) {
+          passwordError.classList.remove('hidden');
+          document.getElementById('newFiscalPassword').classList.add('shake');
+          setTimeout(() => {
+            document.getElementById('newFiscalPassword').classList.remove('shake');
+          }, 500);
+          isValid = false;
+        } else {
+          passwordError.classList.add('hidden');
+        }
+        
+        if (!isValid) return;
+        
+        // Verifica se o ID já existe
+        if (appData.fiscals.some(f => f.id === fiscalId)) {
+          showFeedback('Já existe um fiscal com este ID', true);
+          return;
+        }
+        
+        // Mostra spinner no botão
+        const button = this;
+        const buttonText = document.getElementById('addFiscalButtonText');
+        const spinner = document.getElementById('addFiscalButtonSpinner');
+        
+        buttonText.textContent = 'Adicionando...';
+        spinner.classList.remove('hidden');
+        button.disabled = true;
+        
+        // Simula delay para melhor UX
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        const { date, time } = updateDateTime();
+        
+        appData.fiscals.push({
+          id: fiscalId,
+          name: fiscalName,
+          password: fiscalPassword,
+          entryTime: entryTime || '08:30',
+          exitTime: exitTime || '17:30'
+        });
+        
+        saveData();
+        
+        // Feedback de sucesso
+        const message = `Fiscal ${fiscalName} cadastrado com sucesso em ${date} às ${time}`;
+        showFeedback(message);
+        showSuccessNotification(message);
+        
+        // Reseta o botão
+        buttonText.textContent = 'Adicionar Fiscal';
+        spinner.classList.add('hidden');
+        button.disabled = false;
+        
+        // Limpa os campos
+        document.getElementById('newFiscalId').value = '';
+        document.getElementById('newFiscalName').value = '';
+        document.getElementById('newFiscalPassword').value = '';
+      });
+      
+      // Atualiza a lista de fiscais no datalist e na visualização
+      function updateFiscalList() {
+        const datalist = document.getElementById('fiscalList');
+        const container = document.getElementById('fiscalListContainer');
+        const searchTerm = document.getElementById('searchFiscal').value.toLowerCase();
+        
+        // Filtra fiscais conforme busca
+        const filteredFiscals = appData.fiscals.filter(fiscal => 
+          fiscal.id.toLowerCase().includes(searchTerm) || 
+          fiscal.name.toLowerCase().includes(searchTerm)
+        );
+        
+        // Atualiza contador
+        document.getElementById('fiscalCount').textContent = 
+          `${filteredFiscals.length} ${filteredFiscals.length === 1 ? 'fiscal' : 'fiscais'}`;
+        
+        // Limpa as opções existentes
+        datalist.innerHTML = '';
+        container.innerHTML = '';
+        
+        if (filteredFiscals.length === 0) {
+          container.innerHTML = '<p class="text-[#60758a] text-center py-4">Nenhum fiscal encontrado</p>';
+          return;
+        }
+        
+        // Adiciona novas opções
+        filteredFiscals.forEach(fiscal => {
+          // Para o datalist (autocomplete)
+          const option = document.createElement('option');
+          option.value = fiscal.id;
+          option.textContent = `${fiscal.id} - ${fiscal.name}`;
+          datalist.appendChild(option);
+          
+          // Para a lista visual
+          const fiscalElement = document.createElement('div');
+          fiscalElement.className = 'flex justify-between items-center py-2 border-b border-[#f0f2f5] fade-in';
+          fiscalElement.innerHTML = `
+            <div>
+              <span class="font-medium">${fiscal.id}</span>
+              <span class="text-[#60758a]"> - ${fiscal.name}</span>
+              <div class="text-xs text-gray-500">
+                Entrada: ${fiscal.entryTime || '08:30'} | Saída: ${fiscal.exitTime || '17:30'} | Senha: ****
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="text-blue-500 change-password" data-id="${fiscal.id}" title="Alterar senha">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM51.31,160,136,75.31,152.69,92,68,176.68ZM48,179.31,76.69,208H48Zm48,25.38L79.31,188,164,103.31,180.69,120Zm96-96L147.31,64l24-24L216,84.68Z"></path>
+                </svg>
+              </button>
+              <button class="text-red-500 delete-fiscal" data-id="${fiscal.id}" title="Remover fiscal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                </svg>
+              </button>
+            </div>
+          `;
+          container.appendChild(fiscalElement);
+        });
+        
+        // Adiciona event listeners para os botões de deletar
+        document.querySelectorAll('.delete-fiscal').forEach(button => {
+          button.addEventListener('click', function() {
+            const fiscalId = this.getAttribute('data-id');
+            const fiscalName = appData.fiscals.find(f => f.id === fiscalId)?.name;
+            
+            showPasswordModal(() => {
+              if (confirm(`Tem certeza que deseja remover o fiscal ${fiscalName} (ID: ${fiscalId})?`)) {
+                appData.fiscals = appData.fiscals.filter(f => f.id !== fiscalId);
+                saveData();
+                showFeedback(`Fiscal ${fiscalName} removido com sucesso`);
+              }
+            });
+          });
+        });
+        
+        // Adiciona event listeners para os botões de alterar senha
+        document.querySelectorAll('.change-password').forEach(button => {
+          button.addEventListener('click', function() {
+            const fiscalId = this.getAttribute('data-id');
+            showChangePasswordModal(fiscalId);
+          });
+        });
+      }
+      
+      // Atualiza o histórico de registros
+      function updateHistoryList() {
+        const container = document.getElementById('historyList');
+        const searchTerm = document.getElementById('historySearch').value.toLowerCase();
+        const dateFrom = document.getElementById('historyDateFrom').value;
+        const dateTo = document.getElementById('historyDateTo').value;
+        
+        // Filtra registros conforme busca e datas
+        let filteredRecords = appData.records.filter(record => 
+          record.fiscalId.toLowerCase().includes(searchTerm) || 
+          record.fiscalName.toLowerCase().includes(searchTerm)
+        );
+        
+        // Filtra por data se informado
+        if (dateFrom) {
+          const fromDate = new Date(dateFrom);
+          filteredRecords = filteredRecords.filter(record => {
+            const recordDate = new Date(record.date.split('/').reverse().join('-'));
+            return recordDate >= fromDate;
+          });
+        }
+        
+        if (dateTo) {
+          const toDate = new Date(dateTo);
+          filteredRecords = filteredRecords.filter(record => {
+            const recordDate = new Date(record.date.split('/').reverse().join('-'));
+            return recordDate <= toDate;
+          });
+        }
+        
+        // Atualiza contador
+        document.getElementById('historyCount').textContent = 
+          `${filteredRecords.length} ${filteredRecords.length === 1 ? 'registro' : 'registros'}`;
+        
+        container.innerHTML = '';
+        
+        if (filteredRecords.length === 0) {
+          container.innerHTML = '<p class="text-[#60758a] text-center py-4">Nenhum registro encontrado</p>';
+          return;
+        }
+        
+        filteredRecords.forEach(record => {
+          const recordElement = document.createElement('div');
+          recordElement.className = 'py-2 border-b border-[#f0f2f5] fade-in';
+          recordElement.innerHTML = `
+            <div class="flex justify-between">
+              <span class="font-medium">${record.fiscalName}</span>
+              <span class="text-[#60758a]">ID: ${record.fiscalId}</span>
+            </div>
+            <div class="flex justify-between text-sm text-[#60758a]">
+              <span>${record.date}</span>
+              <span class="${record.type === 'entry' ? 'text-green-500' : 'text-red-500'}">
+                ${record.type === 'entry' ? 'Entrada' : 'Saída'}: ${record.time}
+              </span>
+            </div>
+            <div class="flex justify-end gap-2 mt-1">
+              <button class="text-blue-500 text-xs edit-record" data-id="${record.timestamp}">Editar</button>
+              <button class="text-red-500 text-xs delete-record" data-id="${record.timestamp}">Excluir</button>
+            </div>
+          `;
+          container.appendChild(recordElement);
+        });
+        
+        // Adiciona event listeners para os botões de edição e exclusão
+        document.querySelectorAll('.edit-record').forEach(button => {
+          button.addEventListener('click', function() {
+            const timestamp = parseInt(this.getAttribute('data-id'));
+            const record = appData.records.find(r => r.timestamp === timestamp);
+            if (record) {
+              showEditModal(record);
+            }
+          });
+        });
+        
+        document.querySelectorAll('.delete-record').forEach(button => {
+          button.addEventListener('click', function() {
+            const timestamp = parseInt(this.getAttribute('data-id'));
+            const record = appData.records.find(r => r.timestamp === timestamp);
+            
+            if (record) {
+              showPasswordModal(() => {
+                appData.records = appData.records.filter(r => r.timestamp !== timestamp);
+                saveData();
+                showFeedback('Registro excluído com sucesso');
+              });
+            }
+          });
+        });
+      }
+      
+      // Exporta dados para CSV
+      document.getElementById('exportButton').addEventListener('click', async function() {
+        if (appData.records.length === 0) {
+          showFeedback('Nenhum registro para exportar', true);
+          return;
+        }
+        
+        // Mostra spinner no botão
+        const button = this;
+        const buttonText = document.getElementById('exportButtonText');
+        const spinner = document.getElementById('exportButtonSpinner');
+        
+        buttonText.textContent = 'Exportando...';
+        spinner.classList.remove('hidden');
+        button.disabled = true;
+        
+        // Simula delay para melhor UX
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Cabeçalho do CSV
+        let csvContent = "ID Fiscal,Nome Fiscal,Tipo,Data,Hora\n";
+        
+        // Adiciona cada registro
+        appData.records.forEach(record => {
+          csvContent += `"${record.fiscalId}","${record.fiscalName}","${record.type === 'entry' ? 'Entrada' : 'Saída'}","${record.date}","${record.time}"\n`;
+        });
+        
+        // Cria link para download
+        const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `registros_ponto_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Reseta o botão
+        buttonText.textContent = 'Exportar para CSV';
+        spinner.classList.add('hidden');
+        button.disabled = false;
+        
+        const { date, time } = updateDateTime();
+        const message = `Dados exportados com sucesso em ${date} às ${time}`;
+        showFeedback(message);
+        showSuccessNotification(message);
+      });
+      
+      // Cria backup dos dados
+      document.getElementById('backupButton').addEventListener('click', async function() {
+        // Mostra spinner no botão
+        const button = this;
+        const buttonText = document.getElementById('backupButtonText');
+        const spinner = document.getElementById('backupButtonSpinner');
+        
+        buttonText.textContent = 'Preparando...';
+        spinner.classList.remove('hidden');
+        button.disabled = true;
+        
+        // Simula delay para melhor UX
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        showBackupModal(true);
+        
+        // Reseta o botão
+        buttonText.textContent = 'Backup de Dados';
+        spinner.classList.add('hidden');
+        button.disabled = false;
+      });
+      
+      // Restaura backup dos dados
+      document.getElementById('restoreButton').addEventListener('click', async function() {
+        // Mostra spinner no botão
+        const button = this;
+        const buttonText = document.getElementById('restoreButtonText');
+        const spinner = document.getElementById('restoreButtonSpinner');
+        
+        buttonText.textContent = 'Preparando...';
+        spinner.classList.remove('hidden');
+        button.disabled = true;
+        
+        // Simula delay para melhor UX
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        showBackupModal(false);
+        
+        // Reseta o botão
+        buttonText.textContent = 'Restaurar Backup';
+        spinner.classList.add('hidden');
+        button.disabled = false;
+      });
+      
+      // Download do backup
+      document.getElementById('downloadBackup').addEventListener('click', function() {
+        const backupData = {
+          fiscals: appData.fiscals,
+          records: appData.records,
+          lastRegisterTime: appData.lastRegisterTime,
+          backupDate: new Date().toISOString()
+        };
+        
+        const dataStr = JSON.stringify(backupData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportName = `backup_ponto_${new Date().toISOString().slice(0,10)}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportName);
+        linkElement.click();
+        
+        const { date, time } = updateDateTime();
+        const message = `Backup realizado com sucesso em ${date} às ${time}`;
+        showFeedback(message);
+        showSuccessNotification(message);
+        closeBackupModal();
+      });
+      
+      // Restauração de backup
+      document.getElementById('backupFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const backupData = JSON.parse(e.target.result);
+            
+            // Validação básica do arquivo de backup
+            if (!backupData.fiscals || !backupData.records) {
+              throw new Error('Formato de arquivo inválido');
+            }
+            
+            showPasswordModal(() => {
+              if (confirm('Tem certeza que deseja restaurar este backup? Todos os dados atuais serão substituídos.')) {
+                appData.fiscals = backupData.fiscals;
+                appData.records = backupData.records;
+                appData.lastRegisterTime = backupData.lastRegisterTime;
+                saveData();
+                
+                const { date, time } = updateDateTime();
+                const message = `Backup restaurado com sucesso em ${date} às ${time}`;
+                showFeedback(message);
+                showSuccessNotification(message);
+                closeBackupModal();
+              }
+            });
+          } catch (error) {
+            document.getElementById('restoreError').classList.remove('hidden');
+            console.error('Erro ao restaurar backup:', error);
+          }
+        };
+        reader.readAsText(file);
+      });
+      
+      // Alteração de senha do fiscal
+      document.getElementById('confirmChangePassword').addEventListener('click', function() {
+        const fiscalId = document.getElementById('changePasswordFiscalId').value;
+        const newPassword = document.getElementById('newPasswordInput').value;
+        const confirmPassword = document.getElementById('confirmNewPasswordInput').value;
+        
+        const newPasswordError = document.getElementById('newPasswordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        
+        // Validações
+        let isValid = true;
+        
+        if (!validateFiscalPassword(newPassword)) {
+          newPasswordError.classList.remove('hidden');
+          document.getElementById('newPasswordInput').classList.add('shake');
+          setTimeout(() => {
+            document.getElementById('newPasswordInput').classList.remove('shake');
+          }, 500);
+          isValid = false;
+        } else {
+          newPasswordError.classList.add('hidden');
+        }
+        
+        if (newPassword !== confirmPassword) {
+          confirmPasswordError.classList.remove('hidden');
+          document.getElementById('confirmNewPasswordInput').classList.add('shake');
+          setTimeout(() => {
+            document.getElementById('confirmNewPasswordInput').classList.remove('shake');
+          }, 500);
+          isValid = false;
+        } else {
+          confirmPasswordError.classList.add('hidden');
+        }
+        
+        if (!isValid) return;
+        
+        // Atualiza a senha do fiscal
+        const fiscalIndex = appData.fiscals.findIndex(f => f.id === fiscalId);
+        if (fiscalIndex !== -1) {
+          appData.fiscals[fiscalIndex].password = newPassword;
+          saveData();
+          
+          const { date, time } = updateDateTime();
+          const message = `Senha do fiscal atualizada com sucesso em ${date} às ${time}`;
+          showFeedback(message);
+          showSuccessNotification(message);
+          closeChangePasswordModal();
+        }
+      });
+      
+      // Cancelar alteração de senha
+      document.getElementById('cancelChangePassword').addEventListener('click', function() {
+        closeChangePasswordModal();
+      });
+      
+      // Limpa histórico
+      document.getElementById('clearHistory').addEventListener('click', function() {
+        if (appData.records.length === 0) return;
+        
+        showPasswordModal(() => {
+          if (confirm('Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.')) {
+            appData.records = [];
+            saveData();
+            
+            const { date, time } = updateDateTime();
+            const message = `Histórico limpo com sucesso em ${date} às ${time}`;
+            showFeedback(message);
+            showSuccessNotification(message);
+          }
+        });
+      });
+      
+      // Navegação entre abas
+      const tabs = {
+        register: {
+          link: document.getElementById('homeLink'),
+          icon: document.getElementById('homeIcon'),
+          content: document.getElementById('registerTab')
+        },
+        fiscal: {
+          link: document.getElementById('fiscalLink'),
+          icon: document.getElementById('fiscalIcon'),
+          content: document.getElementById('fiscalTab')
+        },
+        history: {
+          link: document.getElementById('historyLink'),
+          icon: document.getElementById('historyIcon'),
+          content: document.getElementById('historyTab')
+        }
+      };
+      
+      // Função para mudar a aba ativa
+      function setActiveTab(tab) {
+        // Reseta todos os ícones e links
+        Object.values(tabs).forEach(item => {
+          item.link.classList.remove('text-[#111418]');
+          item.link.classList.add('text-[#60758a]');
+          item.icon.classList.remove('text-[#111418]');
+          item.icon.classList.add('text-[#60758a]');
+          item.content.classList.remove('active');
+        });
+        
+        // Ativa o selecionado
+        tabs[tab].link.classList.remove('text-[#60758a]');
+        tabs[tab].link.classList.add('text-[#111418]');
+        tabs[tab].icon.classList.remove('text-[#60758a]');
+        tabs[tab].icon.classList.add('text-[#111418]');
+        tabs[tab].content.classList.add('active');
+      }
+      
+      // Event listeners para os links de navegação
+      tabs.register.link.addEventListener('click', function(e) {
+        e.preventDefault();
+        setActiveTab('register');
+      });
+      
+      tabs.fiscal.link.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Verifica se já está na aba fiscal
+        if (!tabs.fiscal.content.classList.contains('active')) {
+          showTabAccessModal('fiscal');
+        }
+      });
+      
+      tabs.history.link.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Verifica se já está na aba histórico
+        if (!tabs.history.content.classList.contains('active')) {
+          showTabAccessModal('history');
+        }
+      });
+      
+      // Busca de fiscais
+      document.getElementById('searchFiscal').addEventListener('input', function() {
+        updateFiscalList();
+      });
+      
+      // Busca no histórico
+      document.getElementById('historySearch').addEventListener('input', function() {
+        updateHistoryList();
+      });
+      
+      // Filtros de data no histórico
+      document.getElementById('historyDateFrom').addEventListener('change', function() {
+        updateHistoryList();
+      });
+      
+      document.getElementById('historyDateTo').addEventListener('change', function() {
+        updateHistoryList();
+      });
+      
+      // Modal de senha - Confirmar
+      document.getElementById('confirmPassword').addEventListener('click', function() {
+        const password = document.getElementById('passwordInput').value;
+        const errorElement = document.getElementById('passwordError');
+        
+        if (password === PASSWORD) {
+          errorElement.classList.add('hidden');
+          closePasswordModal();
+          if (currentAction) {
+            currentAction();
+          }
+        } else {
+          errorElement.classList.remove('hidden');
+        }
+      });
+      
+      // Modal de senha - Cancelar
+      document.getElementById('cancelPassword').addEventListener('click', function() {
+        closePasswordModal();
+      });
+      
+      // Modal de acesso às abas - Confirmar
+      document.getElementById('confirmTabAccess').addEventListener('click', function() {
+        const password = document.getElementById('tabPasswordInput').value;
+        const errorElement = document.getElementById('tabPasswordError');
+        
+        if (password === PASSWORD) {
+          errorElement.classList.add('hidden');
+          closeTabAccessModal();
+          if (targetTab) {
+            setActiveTab(targetTab);
+          }
+        } else {
+          errorElement.classList.remove('hidden');
+        }
+      });
+      
+      // Modal de acesso às abas - Cancelar
+      document.getElementById('cancelTabAccess').addEventListener('click', function() {
+        closeTabAccessModal();
+      });
+      
+      // Modal de backup - Fechar
+      document.getElementById('closeBackupModal').addEventListener('click', function() {
+        closeBackupModal();
+      });
+      
+      // Modal de edição - Salvar
+      document.getElementById('saveEdit').addEventListener('click', function() {
+        const fiscalId = document.getElementById('editFiscalId').value.trim();
+        const fiscalName = document.getElementById('editFiscalName').value.trim();
+        const type = document.getElementById('editType').value;
+        const date = document.getElementById('editDate').value;
+        const time = document.getElementById('editTime').value;
+        
+        if (!validateFiscalId(fiscalId)) {
+          alert('ID do fiscal deve conter 2 dígitos numéricos');
+          return;
+        }
+        
+        if (!validateFiscalName(fiscalName)) {
+          alert('Nome do fiscal deve conter pelo menos 5 caracteres');
+          return;
+        }
+        
+        if (!date || !time) {
+          alert('Data e hora são obrigatórios');
+          return;
+        }
+        
+        // Formata a data para DD/MM/YYYY
+        const formattedDate = date.split('-').reverse().join('/');
+        
+        // Atualiza o registro
+        const recordIndex = appData.records.findIndex(r => r.timestamp === currentRecordToEdit.timestamp);
+        if (recordIndex !== -1) {
+          appData.records[recordIndex] = {
+            ...appData.records[recordIndex],
+            fiscalId,
+            fiscalName,
+            type,
+            date: formattedDate,
+            time,
+          };
+          
+          saveData();
+          
+          const { date: currentDate, time: currentTime } = updateDateTime();
+          const message = `Registro atualizado com sucesso em ${currentDate} às ${currentTime}`;
+          showFeedback(message);
+          showSuccessNotification(message);
+          closeEditModal();
+        }
+      });
+      
+      // Modal de edição - Cancelar
+      document.getElementById('cancelEdit').addEventListener('click', function() {
+        closeEditModal();
+      });
+      
+      // Inicializa a aplicação
+      function initApp() {
+        setActiveTab('register');
+        updateFiscalList();
+        updateHistoryList();
+        
+        // Define data atual como padrão nos filtros
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('historyDateFrom').value = today;
+        document.getElementById('historyDateTo').value = today;
+      }
+      
+      // Inicia o app quando o DOM estiver pronto
+      document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+  </body>
+</html>
